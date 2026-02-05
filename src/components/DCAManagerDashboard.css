@@ -1,0 +1,209 @@
+.dca-manager-dashboard {
+  padding: 0;
+}
+
+.manager-welcome {
+  background: linear-gradient(135deg, #2196f3, #21cbf3);
+  color: white;
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+}
+
+.welcome-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcome-header > div h2 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.welcome-header > div p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.assign-cases-btn:hover {
+  background: #45a049 !important;
+  transform: translateY(-1px);
+}
+
+.manager-kpi {
+  border-left: 4px solid #2196f3;
+  transition: transform 0.2s ease;
+}
+
+.manager-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.recent-cases-card {
+  background: #1a1a1a;
+  border: 1px solid #2d2d2d;
+  border-radius: 12px;
+  padding: 25px;
+  grid-column: span 2;
+}
+
+.recent-cases-card h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+}
+
+.cases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.case-item {
+  background: #2d2d2d;
+  border-radius: 8px;
+  padding: 15px;
+  transition: background 0.2s ease;
+}
+
+.case-item:hover {
+  background: #3d3d3d;
+}
+
+.case-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.case-id {
+  font-weight: 600;
+  color: #2196f3;
+  font-size: 14px;
+}
+
+.case-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customer-name {
+  margin: 0;
+  font-weight: 500;
+  color: #fff;
+  font-size: 16px;
+}
+
+.case-meta {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.amount {
+  color: #4ecdc4;
+  font-weight: 600;
+}
+
+.date {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.performance-card {
+  background: #1a1a1a;
+  border: 1px solid #2d2d2d;
+  border-radius: 12px;
+  padding: 25px;
+}
+
+.performance-card h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+}
+
+.performance-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.perf-stat {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: #2d2d2d;
+  border-radius: 8px;
+}
+
+.perf-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.perf-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.perf-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .recent-cases-card {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .recent-cases-card {
+    grid-column: span 1;
+  }
+  
+  .manager-welcome {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .manager-welcome h2 {
+    font-size: 24px;
+  }
+  
+  .case-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

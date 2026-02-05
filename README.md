@@ -50,6 +50,34 @@ FedEx currently manages overdue accounts through manual, siloed processes (email
 
 ---
 
+## 📂 Project Structure
+```
+FedEx_iitmadras/
+├── database/               # Database scripts & backups
+│   ├── cleaned_data.csv   # Clean dataset backup (20,010 cases)
+│   ├── clean_csv.py       # Data cleaning script
+│   ├── import_csv.py      # Python CSV import script
+│   ├── import_data.sql    # SQL data import script
+│   └── README.md          # Database documentation
+├── src/                   # React application source
+│   ├── components/        # React components
+│   ├── contexts/          # React contexts (Auth, UserProfile)
+│   ├── pages/             # Page components
+│   ├── lib/              # Supabase client & utilities
+│   └── utils/            # Helper functions
+├── supabase/             # Supabase configuration
+│   ├── migrations/       # Database migrations
+│   └── seed.sql          # Seed data
+├── public/               # Static assets
+├── scripts/              # Build & deployment scripts
+├── model/                # AI/ML models
+├── DATABASE.md           # Complete database guide
+├── DATABASE_SCHEMA.md    # Schema documentation
+└── DEPLOYMENT_CHECKLIST.md  # Deployment guide
+```
+
+---
+
 ## 🏗️ System Architecture
 [cite_start]Sentinel follows a **three-tier, deployment-ready native architecture**[cite: 209].
 

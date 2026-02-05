@@ -1,0 +1,254 @@
+.dca-manager-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #0a0a0a;
+}
+
+/* Sidebar */
+.dca-sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #0d0d0d 0%, #0a0a0a 100%);
+  border-right: 1px solid #1e1e1e;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  transition: width 0.3s ease;
+  z-index: 100;
+}
+
+.dca-sidebar.collapsed {
+  width: 80px;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px;
+  border-bottom: 1px solid #2d2d2d;
+}
+
+.sidebar-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.sidebar-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-primary {
+  font-size: 22px;
+  font-weight: 800;
+  color: #4caf50;
+}
+
+.brand-secondary {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-item:hover {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(56, 142, 60, 0.1));
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.sidebar-footer {
+  padding: 20px 12px;
+  border-top: 1px solid #2d2d2d;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #2d2d2d;
+  border: 1px solid #3d3d3d;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+  background: #4caf50;
+  border-color: #4caf50;
+}
+
+/* Main Content */
+.dca-main {
+  flex: 1;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.dca-sidebar.collapsed + .dca-main {
+  margin-left: 80px;
+}
+
+.dca-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  background: #0d0d0d;
+  border-bottom: 1px solid #1e1e1e;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.user-info-container {
+  display: flex;
+  align-items: center;
+}
+
+.user-info-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: #2d2d2d;
+  border-radius: 12px;
+  border: 1px solid #3d3d3d;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.user-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #4caf50;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.user-email {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.user-org-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4caf50;
+  background: rgba(76, 175, 80, 0.15);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.dca-content {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+  background: #0a0a0a;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .dca-sidebar {
+    width: 80px;
+  }
+  
+  .dca-sidebar .sidebar-brand,
+  .dca-sidebar .nav-item span,
+  .dca-sidebar .logout-btn span {
+    display: none;
+  }
+  
+  .dca-main {
+    margin-left: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dca-topbar {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .user-info-card {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

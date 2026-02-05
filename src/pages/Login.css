@@ -8,6 +8,9 @@
   display: flex;
   min-height: 100vh;
   width: 100%;
+  /* Override global dark theme for login pages */
+  color: #333333 !important;
+  background: white !important;
 }
 
 /* Left Side - Purple Gradient with Illustration */
@@ -151,27 +154,29 @@
   font-size: 32px;
   font-weight: 600;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  color: #1a1a1a;
-  margin-bottom: 40px;
+  color: #1a1a1a !important;
+  margin-bottom: 32px;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .form-group label {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  color: #1a1a1a;
+  color: #333333 !important;
 }
 
 .form-group input {
@@ -181,13 +186,35 @@
   border-radius: 6px;
   font-size: 15px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  background: #f5f5f5;
-  color: #000000;
+  background: #fafafa !important;
+  color: #333333 !important;
   transition: all 0.3s ease;
 }
 
+.form-group select,
+.form-group .form-select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  background: #fafafa !important;
+  color: #333333 !important;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.form-group select:focus,
+.form-group .form-select:focus {
+  outline: none;
+  border-color: #7b1fa2;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(123, 31, 162, 0.1);
+}
+
 .form-group input::placeholder {
-  color: #999999;
+  color: #888888 !important;
 }
 
 .form-group input:focus {
@@ -254,8 +281,8 @@
 .btn-login {
   width: 100%;
   padding: 14px;
-  background: #1a1a1a;
-  color: white;
+  background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%);
+  color: white !important;
   border: none;
   border-radius: 6px;
   font-size: 16px;
@@ -267,9 +294,9 @@
 }
 
 .btn-login:hover {
-  background: #2d2d2d;
+  background: linear-gradient(135deg, #6a1b9a 0%, #8e24aa 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(123, 31, 162, 0.4);
 }
 
 .btn-login:disabled {
@@ -373,4 +400,57 @@
   .form-title {
     font-size: 28px;
   }
+}
+
+/* Additional overrides to ensure proper text visibility */
+.login-page .form-group label {
+  color: #333333 !important;
+}
+
+.login-page .form-group input,
+.login-page .form-group select {
+  color: #333333 !important;
+  background: #fafafa !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.login-page .form-group input::placeholder {
+  color: #888888 !important;
+}
+
+.login-page .form-title {
+  color: #1a1a1a !important;
+}
+
+.login-page .remember-me label {
+  color: #555 !important;
+}
+
+.login-page .signup-link {
+  color: #555 !important;
+}
+
+.login-page .signup-link a {
+  color: #7b1fa2 !important;
+}
+
+.login-page .form-footer {
+  color: #666 !important;
+}
+
+.login-page .form-footer a {
+  color: #666 !important;
+}
+
+.login-page .form-footer a:hover {
+  color: #7b1fa2 !important;
+}
+
+.login-page .btn-login {
+  background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%) !important;
+  color: white !important;
+}
+
+.login-page .btn-login:hover {
+  background: linear-gradient(135deg, #6a1b9a 0%, #8e24aa 100%) !important;
 }

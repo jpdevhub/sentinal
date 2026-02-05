@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email, password, organizationType) => {
+  const signUp = async (email, password, organizationType, selectedDCA) => {
     // Get the current origin - will be Vercel URL in production, localhost in dev
     const redirectUrl = window.location.origin + '/dashboard';
     
@@ -41,7 +41,8 @@ export const AuthProvider = ({ children }) => {
       password,
       options: {
         data: { 
-          organization_type: organizationType 
+          organization_type: organizationType,
+          selected_dca: selectedDCA 
         },
         emailRedirectTo: redirectUrl, // Dynamic redirect based on environment
       }

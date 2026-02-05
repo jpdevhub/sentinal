@@ -3,6 +3,7 @@ import {
   LayoutDashboard, 
   FolderKanban, 
   TrendingUp, 
+  Shield, 
   Users, 
   Clock, 
   Package, 
@@ -30,11 +31,7 @@ function DashboardLayout({ children, activePage, onPageChange }) {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'cases', label: 'All Cases', icon: FolderKanban },
     { id: 'dca-performance', label: 'DCA Performance', icon: TrendingUp },
-    { id: 'analytics', label: 'Analytics', icon: FileText },
-    { id: 'user-management', label: 'User Management', icon: Users },
-    { id: 'sla-tracking', label: 'SLA Tracking', icon: Clock },
-    { id: 'bulk-operations', label: 'Bulk Operations', icon: Package },
-    { id: 'audit-logs', label: 'Audit Logs', icon: FileText }
+    { id: 'governance', label: 'Governance', icon: Shield }
   ];
 
   return (

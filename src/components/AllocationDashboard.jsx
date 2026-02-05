@@ -11,16 +11,7 @@ import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
-import { 
-  loadDataset,
-  calculateDashboardMetrics,
-  getPriorityDistribution,
-  getDebtAgeingData,
-  getRecoveryByAgency,
-  getSLABreachesByAgency,
-  getCaseStatusDistribution,
-  getEscalationReasons
-} from '../utils/dataUtils';
+import { supabase } from '../lib/supabase';
 import './AllocationDashboard.css';
 
 function AllocationDashboard() {
@@ -36,23 +27,168 @@ function AllocationDashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const data = await loadDataset();
       
-      const calculatedMetrics = calculateDashboardMetrics(data);
+      // Fetch ALL cases for comprehensive dashboard metrics
+      const { data: cases, error } = await supabase
+        .from('cases')
+        .select('*');
+
+      if (error) {
+        console.error('Error loading cases:', error);
+        setLoading(false);
+        return;
+      }
+
+      // Calculate metrics from Supabase data
+      const calculatedMetrics = calculateDashboardMetricsFromSupabase(cases);
       setMetrics(calculatedMetrics);
       
-      setPriorityData(getPriorityDistribution(data));
-      setDebtAgeingData(getDebtAgeingData(data));
-      setRecoveryByAgency(getRecoveryByAgency(data));
-      setSlaBreaches(getSLABreachesByAgency(data));
-      setStatusDistribution(getCaseStatusDistribution(data));
-      setEscalationReasons(getEscalationReasons(data));
+      setPriorityData(getPriorityDistributionFromSupabase(cases));
+      setDebtAgeingData(getDebtAgeingDataFromSupabase(cases));
+      setRecoveryByAgency(getRecoveryByAgencyFromSupabase(cases));
+      setSlaBreaches(getSLABreachesByAgencyFromSupabase(cases));
+      setStatusDistribution(getCaseStatusDistributionFromSupabase(cases));
+      setEscalationReasons(getEscalationReasonsFromSupabase(cases));
       
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       setLoading(false);
     }
+  };
+
+  // Supabase-based calculation functions
+  const calculateDashboardMetricsFromSupabase = (cases) => {
+    if (!cases || cases.length === 0) {
+      return {
+        totalOutstanding: 0,
+        totalRecovered: 0,
+        activeSLABreaches: 0,
+        recoveryRate: 0,
+        totalCases: 0,
+        openCases: 0,
+        closedCases: 0,
+        averageRecoveryAmount: 0
+      };
+    }
+
+    const totalOutstanding = cases.reduce((sum, row) => sum + (row.invoice_amount || 0), 0);
+    const totalRecovered = cases.reduce((sum, row) => sum + (row.amount_recovered || 0), 0);
+    const activeSLABreaches = cases.filter(row => 
+      row.sla_breach_count > 0 && row.case_status !== 'PAID'
+    ).length;
+    const recoveryRate = totalOutstanding > 0 ? (totalRecovered / totalOutstanding) * 100 : 0;
+    
+    const totalCases = cases.length;
+    const openCases = cases.filter(row => row.case_status === 'OPEN').length;
+    const closedCases = cases.filter(row => row.case_status === 'PAID').length;
+    const averageRecoveryAmount = closedCases > 0 ? totalRecovered / closedCases : 0;
+
+    return {
+      totalOutstanding,
+      totalRecovered,
+      activeSLABreaches,
+      recoveryRate,
+      totalCases,
+      openCases,
+      closedCases,
+      averageRecoveryAmount
+    };
+  };
+
+  const getPriorityDistributionFromSupabase = (cases) => {
+    const distribution = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+    cases.forEach(case_ => {
+      if (distribution.hasOwnProperty(case_.priority_level)) {
+        distribution[case_.priority_level]++;
+      }
+    });
+    
+    return Object.entries(distribution).map(([name, value]) => ({ name, value }));
+  };
+
+  const getDebtAgeingDataFromSupabase = (cases) => {
+    const ageGroups = {
+      '0-30 days': 0,
+      '31-60 days': 0,
+      '61-90 days': 0,
+      '90+ days': 0
+    };
+
+    cases.forEach(case_ => {
+      const days = case_.days_overdue || 0;
+      if (days <= 30) ageGroups['0-30 days']++;
+      else if (days <= 60) ageGroups['31-60 days']++;
+      else if (days <= 90) ageGroups['61-90 days']++;
+      else ageGroups['90+ days']++;
+    });
+
+    return Object.entries(ageGroups).map(([name, value]) => ({ name, value }));
+  };
+
+  const getRecoveryByAgencyFromSupabase = (cases) => {
+    const agencies = {};
+    cases.forEach(case_ => {
+      if (!agencies[case_.dca_id]) {
+        agencies[case_.dca_id] = { total: 0, recovered: 0 };
+      }
+      agencies[case_.dca_id].total += case_.invoice_amount || 0;
+      agencies[case_.dca_id].recovered += case_.amount_recovered || 0;
+    });
+
+    return Object.entries(agencies).map(([name, data]) => ({
+      name: name.replace('DCA_', 'DCA '),
+      total: data.total,
+      recovered: data.recovered,
+      rate: data.total > 0 ? (data.recovered / data.total * 100) : 0
+    }));
+  };
+
+  const getSLABreachesByAgencyFromSupabase = (cases) => {
+    const agencies = {};
+    cases.forEach(case_ => {
+      if (!agencies[case_.dca_id]) {
+        agencies[case_.dca_id] = { total: 0, breaches: 0 };
+      }
+      agencies[case_.dca_id].total++;
+      if (case_.sla_breach_count > 0) {
+        agencies[case_.dca_id].breaches++;
+      }
+    });
+
+    return Object.entries(agencies).map(([name, data]) => ({
+      name: name.replace('DCA_', 'DCA '),
+      breaches: data.breaches,
+      total: data.total,
+      rate: data.total > 0 ? (data.breaches / data.total * 100) : 0
+    }));
+  };
+
+  const getCaseStatusDistributionFromSupabase = (cases) => {
+    const distribution = { OPEN: 0, IN_PROGRESS: 0, PAID: 0, DISPUTE: 0 };
+    cases.forEach(case_ => {
+      if (distribution.hasOwnProperty(case_.case_status)) {
+        distribution[case_.case_status]++;
+      }
+    });
+    
+    return Object.entries(distribution).map(([name, value]) => ({ 
+      name: name.replace('_', ' '), 
+      value 
+    }));
+  };
+
+  const getEscalationReasonsFromSupabase = (cases) => {
+    const reasons = {};
+    cases.forEach(case_ => {
+      if (case_.escalation_flag && case_.escalation_reason) {
+        reasons[case_.escalation_reason] = (reasons[case_.escalation_reason] || 0) + 1;
+      }
+    });
+
+    return Object.entries(reasons).map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5); // Top 5 reasons
   };
 
   useEffect(() => {

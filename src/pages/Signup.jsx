@@ -11,18 +11,19 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [organizationType, setOrganizationType] = useState('');
+  const [selectedDCA, setSelectedDCA] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp, user } = useAuth();
+  const { signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to dashboard if already logged in
+  // Redirect to dashboard if already logged in (but wait for auth to finish loading)
   useEffect(() => {
-    if (user) {
+    if (!authLoading && user) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,15 +36,20 @@ export default function Signup() {
     }
 
     if (!organizationType.trim()) {
-      setError('Please enter your organization type');
+      setError('Please select your organization type');
+      return;
+    }
+
+    if (organizationType === 'Agency Manager' && !selectedDCA.trim()) {
+      setError('Please select your DCA assignment');
       return;
     }
 
     setLoading(true);
 
     try {
-      // Sign up the user with organization type
-      const { data, error: signUpError } = await signUp(email, password, organizationType);
+      // Sign up the user with organization type and DCA selection
+      const { data, error: signUpError } = await signUp(email, password, organizationType, selectedDCA);
 
       if (signUpError) {
         setError(signUpError.message);
@@ -77,8 +83,8 @@ export default function Signup() {
           <div className="brand-logo">
             <img src={logoImg} alt="Debts Recovery Logo" className="logo-image" />
             <div className="brand-text">
-              <div className="brand-name">Debts</div>
-              <div className="brand-tagline">Recovery</div>
+              <div className="brand-name">Sentinel</div>
+              <div className="brand-tagline"></div>
             </div>
           </div>
         </div>
@@ -126,16 +132,45 @@ export default function Signup() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="organizationType">Organization Type</label>
-              <input
+              <label htmlFor="organizationType">Organisation Type</label>
+              <select
                 id="organizationType"
-                type="text"
                 value={organizationType}
-                onChange={(e) => setOrganizationType(e.target.value)}
+                onChange={(e) => {
+                  setOrganizationType(e.target.value);
+                  if (e.target.value !== 'Agency Manager') {
+                    setSelectedDCA(''); // Reset DCA selection if not Agency Manager
+                  }
+                }}
                 required
-                placeholder="Enter your organization type"
-              />
+                className="form-select"
+              >
+                <option value="">Select your role...</option>
+                <option value="FedEx Administrator">FedEx Administrator</option>
+                <option value="Agency Manager">Agency Manager</option>
+                <option value="Agency Agent">Agency Agent</option>
+              </select>
             </div>
+
+            {organizationType === 'Agency Manager' && (
+              <div className="form-group">
+                <label htmlFor="selectedDCA">DCA Assignment</label>
+                <select
+                  id="selectedDCA"
+                  value={selectedDCA}
+                  onChange={(e) => setSelectedDCA(e.target.value)}
+                  required
+                  className="form-select"
+                >
+                  <option value="">Select your DCA...</option>
+                  <option value="DCA_A">DCA Alpha (DCA_A)</option>
+                  <option value="DCA_B">DCA Beta (DCA_B)</option>
+                  <option value="DCA_C">DCA Gamma (DCA_C)</option>
+                  <option value="DCA_D">DCA Delta (DCA_D)</option>                  <option value="DCA_8f3d1">DCA Epsilon (DCA_8f3d1)</option>
+                  <option value="DCA_9a2b4">DCA Zeta (DCA_9a2b4)</option>
+                  <option value="DCA_7c1d2">DCA Eta (DCA_7c1d2)</option>                </select>
+              </div>
+            )}
 
             {error && <div className="error-message">{error}</div>}
             {success && <div className="success-message">{success}</div>}

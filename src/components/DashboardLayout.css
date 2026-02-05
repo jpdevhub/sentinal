@@ -37,21 +37,26 @@
 }
 
 .sidebar-brand {
+  display: flex;
+  align-items: baseline;
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .fed-text {
   color: #9c27b0;
+  display: inline;
 }
 
 .ex-text {
   color: #ff6b35;
+  display: inline;
 }
 
 .dca-text {
   color: #ffffff;
+  display: inline;
 }
 
 .sidebar-nav {

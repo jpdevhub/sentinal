@@ -13,15 +13,15 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, user } = useAuth();
+  const { signIn, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to dashboard if already logged in
+  // Redirect to dashboard if already logged in (but wait for auth to finish loading)
   useEffect(() => {
-    if (user) {
+    if (!authLoading && user) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,9 +34,26 @@ export default function Login() {
       setError(error.message);
       setLoading(false);
     } else {
+      // Don't set loading to false here - let the redirect happen
       navigate('/dashboard');
     }
   };
+
+  // Show loading screen while auth is initializing
+  if (authLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: '#0a0a0a',
+        color: '#fff'
+      }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="login-page">

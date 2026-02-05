@@ -1,27 +1,74 @@
 import { useState, useEffect } from 'react';
 import { Search, Download, Filter, RefreshCw, Eye, Edit, Trash2 } from 'lucide-react';
-import { loadDataset } from '../utils/dataUtils';
+import { supabase } from '../lib/supabase';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import './CasesView.css';
 
 function CasesView() {
+  // const { profile } = useUserProfile(); // Temporarily unused
   const [cases, setCases] = useState([]);
   const [filteredCases, setFilteredCases] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(25);
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterPriority, setFilterPriority] = useState('All');
+  const [totalCasesInDB, setTotalCasesInDB] = useState(0);
+  const BATCH_SIZE = 1000;
 
-  const loadCases = async () => {
+  const loadCases = async (isInitial = true) => {
     try {
-      setLoading(true);
-      const data = await loadDataset();
-      setCases(data);
-      setLoading(false);
+      if (isInitial) {
+        setLoading(true);
+        setCases([]);
+      } else {
+        setLoadingMore(true);
+      }
+      
+      // Get total count (only on initial load)
+      if (isInitial) {
+        const { count, error: countError } = await supabase
+          .from('cases')
+          .select('*', { count: 'exact', head: true });
+          
+        if (!countError) {
+          setTotalCasesInDB(count);
+        }
+      }
+
+      // Calculate offset for pagination
+      const offset = isInitial ? 0 : cases.length;
+
+      // Load next batch
+      const { data, error } = await supabase
+        .from('cases')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + BATCH_SIZE - 1);
+
+      if (error) {
+        console.error('Error loading cases from Supabase:', error);
+        if (isInitial) setCases([]);
+      } else {
+        if (isInitial) {
+          setCases(data || []);
+        } else {
+          setCases(prev => [...prev, ...(data || [])]);
+        }
+      }
+      
+      if (isInitial) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
     } catch (error) {
       console.error('Error loading cases:', error);
+      setCases([]);
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -52,7 +99,7 @@ function CasesView() {
   };
 
   useEffect(() => {
-    loadCases();
+    loadCases(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -60,6 +107,18 @@ function CasesView() {
     applyFilters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cases, searchTerm, filterStatus, filterPriority]);
+
+  // Auto-load more data when user reaches near the end
+  useEffect(() => {
+    const lastPage = Math.ceil(cases.length / itemsPerPage);
+    const hasMoreToLoad = cases.length < totalCasesInDB;
+    
+    // If on last page and there's more data, load it
+    if (currentPage >= lastPage && hasMoreToLoad && !loadingMore && !loading) {
+      loadCases(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', {
@@ -134,17 +193,21 @@ function CasesView() {
       <div className="cases-header">
         <div className="cases-stats">
           <div className="stat-item">
-            <span className="stat-label">Total Cases</span>
+            <span className="stat-label">Loaded Cases</span>
+            <span className="stat-value">{cases.length}{totalCasesInDB > 0 ? ` / ${totalCasesInDB}` : ''}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Filtered Cases</span>
             <span className="stat-value">{filteredCases.length}</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Total Value</span>
+            <span className="stat-label">Total Value (Loaded)</span>
             <span className="stat-value">{formatCurrency(filteredCases.reduce((sum, c) => sum + (c.invoice_amount || 0), 0))}</span>
           </div>
         </div>
 
         <div className="cases-actions">
-          <button className="btn-action" onClick={loadCases}>
+          <button className="btn-action" onClick={() => loadCases(true)}>
             <RefreshCw size={18} />
             Refresh
           </button>
@@ -173,12 +236,10 @@ function CasesView() {
           onChange={(e) => setFilterStatus(e.target.value)}
         >
           <option value="All">All Status</option>
-          <option value="Open">Open</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Closed">Closed</option>
-          <option value="Escalated">Escalated</option>
-          <option value="Legal Action">Legal Action</option>
-          <option value="Promise to Pay">Promise to Pay</option>
+          <option value="OPEN">Open</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="PAID">Paid</option>
+          <option value="DISPUTE">Dispute</option>
         </select>
 
         <select 
@@ -187,9 +248,9 @@ function CasesView() {
           onChange={(e) => setFilterPriority(e.target.value)}
         >
           <option value="All">All Priority</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
         </select>
       </div>
 
@@ -283,7 +344,9 @@ function CasesView() {
         </button>
         
         <div className="pagination-info">
-          Page {currentPage} of {totalPages} ({filteredCases.length} total cases)
+          Page {currentPage} of {totalPages} 
+          ({filteredCases.length} filtered / {cases.length} loaded{totalCasesInDB > 0 ? ` / ${totalCasesInDB} total` : ''})
+          {loadingMore && <span style={{ color: '#4ecdc4', marginLeft: '10px' }}>Loading more...</span>}
         </div>
         
         <button 

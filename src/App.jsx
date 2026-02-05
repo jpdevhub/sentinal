@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { UserProfileProvider } from './contexts/UserProfileContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
@@ -18,7 +19,9 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <UserProfileProvider>
+                  <Dashboard />
+                </UserProfileProvider>
               </ProtectedRoute>
             }
           />

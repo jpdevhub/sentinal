@@ -1,0 +1,106 @@
+-- Create custom types
+CREATE TYPE user_role AS ENUM ('FEDEX_ADMIN', 'DCA_MANAGER', 'DCA_AGENT');
+
+-- Create profiles table
+CREATE TABLE public.profiles (
+    id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+    role user_role NOT NULL DEFAULT 'DCA_AGENT',
+    organization_id TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies
+CREATE POLICY "Users can view own profile" ON public.profiles
+    FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON public.profiles
+    FOR UPDATE USING (auth.uid() = id);
+
+-- Function to automatically create profile when user signs up
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+    user_role_value user_role;
+    org_type TEXT;
+BEGIN
+    -- Get organization_type from user metadata
+    org_type := NEW.raw_user_meta_data ->> 'organization_type';
+    
+    -- Map organization_type to role
+    IF org_type = 'FedEx Administrator' THEN
+        user_role_value := 'FEDEX_ADMIN';
+    ELSIF org_type = 'Debt Collection Agency' THEN
+        user_role_value := 'DCA_MANAGER';
+    ELSE
+        user_role_value := 'DCA_AGENT'; -- Default for agents or unknown types
+    END IF;
+    
+    -- Insert new profile
+    INSERT INTO public.profiles (id, role, organization_id)
+    VALUES (
+        NEW.id,
+        user_role_value,
+        COALESCE(NEW.raw_user_meta_data ->> 'organization_id', 'ORG-' || substring(NEW.id::text, 1, 8))
+    );
+    
+    RETURN NEW;
+END;
+$$;
+
+-- Trigger to automatically create profile on user signup
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- Function to update profile timestamp
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.updated_at = timezone('utc'::text, now());
+    RETURN NEW;
+END;
+$$;
+
+-- Trigger to update timestamp
+CREATE TRIGGER set_profiles_updated_at
+    BEFORE UPDATE ON public.profiles
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+
+-- Insert demo data (these will be actual users you can use for testing)
+-- Note: These are fake UUIDs for demo purposes. In real usage, these would be created by Supabase Auth
+INSERT INTO public.profiles (id, role, organization_id) VALUES 
+    ('550e8400-e29b-41d4-a716-446655440000', 'FEDEX_ADMIN', 'FEDEX-HQ'),
+    ('550e8400-e29b-41d4-a716-446655440001', 'DCA_MANAGER', 'DCA-PREMIUM'),
+    ('550e8400-e29b-41d4-a716-446655440002', 'DCA_MANAGER', 'DCA-STANDARD'),
+    ('550e8400-e29b-41d4-a716-446655440003', 'DCA_AGENT', 'DCA-PREMIUM'),
+    ('550e8400-e29b-41d4-a716-446655440004', 'DCA_AGENT', 'DCA-STANDARD'),
+    ('550e8400-e29b-41d4-a716-446655440005', 'DCA_AGENT', 'DCA-PREMIUM');
+
+-- Create a view for easy profile lookup with auth data
+CREATE OR REPLACE VIEW public.user_profiles AS
+SELECT 
+    p.id,
+    p.role,
+    p.organization_id,
+    p.created_at,
+    p.updated_at,
+    u.email,
+    u.raw_user_meta_data ->> 'organization_type' as organization_type,
+    u.raw_user_meta_data ->> 'full_name' as full_name
+FROM public.profiles p
+JOIN auth.users u ON p.id = u.id;
+
+-- Grant necessary permissions
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT ALL ON public.profiles TO authenticated;
+GRANT SELECT ON public.user_profiles TO authenticated;
