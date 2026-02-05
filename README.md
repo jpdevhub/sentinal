@@ -19,34 +19,34 @@
 
 ## ❓ Problem Statement
 FedEx currently manages overdue accounts through manual, siloed processes (emails/spreadsheets), leading to:
-* [cite_start]**"Black Box" Operations:** Minimal visibility into DCA (Debt Collection Agency) agent behavior[cite: 179, 184].
-* [cite_start]**Weak Governance:** Lack of audit trails for interaction compliance[cite: 180, 183].
-* [cite_start]**Inefficiency:** Slow feedback loops and delayed recovery cycles exceeding 25 days[cite: 182, 243].
+* **"Black Box" Operations:** Minimal visibility into DCA (Debt Collection Agency) agent behavior.
+* **Weak Governance:** Lack of audit trails for interaction compliance.
+* **Inefficiency:** Slow feedback loops and delayed recovery cycles exceeding 25 days.
 
 ---
 
 ## 💡 Proposed Solution
-[cite_start]Sentinel provides a single, AI-driven platform that automates the end-to-end debt recovery process[cite: 186].
-* [cite_start]**Intelligent Ingestion:** Single repository for case data via CSV or ERP sync, eliminating silos[cite: 187].
-* [cite_start]**Propensity Prioritization:** AI scores payment likelihood to focus efforts on high-value accounts[cite: 188, 189].
-* [cite_start]**Automated Compliance:** NLP-based monitoring ensures ethical collections and immediate breach alerts[cite: 191, 203].
+Sentinel provides a single, AI-driven platform that automates the end-to-end debt recovery process.
+* **Intelligent Ingestion:** Single repository for case data via CSV or ERP sync, eliminating silos.
+* **Propensity Prioritization:** AI scores payment likelihood to focus efforts on high-value accounts.
+* **Automated Compliance:** NLP-based monitoring ensures ethical collections and immediate breach alerts.
 
 ---
 
 ## ✨ Key Features
-* [cite_start]**🧠 AI Scoring Engine:** Utilizes Scikit-learn for Propensity-to-Pay and Complexity scoring[cite: 219].
-* [cite_start]**⚖️ Meritocratic Allocation:** Auto-assigns cases to DCAs based on performance leaderboards and SLA capacity[cite: 189, 262].
-* [cite_start]**🕵️ AI Sentinel Auditor:** Continuous real-time NLP monitoring for policy compliance and sentiment analysis[cite: 191, 220].
-* [cite_start]**📊 Tri-Party Portals:** Specialized interfaces for FedEx Managers, DCA Agents, and Strategic Management[cite: 210, 211, 212, 213].
+* **🧠 AI Scoring Engine:** Utilizes Scikit-learn for Propensity-to-Pay and Complexity scoring.
+* **⚖️ Meritocratic Allocation:** Auto-assigns cases to DCAs based on performance leaderboards and SLA capacity.
+* **🕵️ AI Sentinel Auditor:** Continuous real-time NLP monitoring for policy compliance and sentiment analysis.
+* **📊 Tri-Party Portals:** Specialized interfaces for FedEx Managers, DCA Agents, and Strategic Management.
 
 ---
 
 ## 🛠️ Tech Stack
-* [cite_start]**Frontend:** React.js, Tailwind CSS (Deployed as a Progressive Web App)[cite: 195].
-* [cite_start]**Backend:** Node.js, Express.js with JWT-based Role-Based Access Control (RBAC)[cite: 196, 215].
-* [cite_start]**AI & Intelligence:** Python, Scikit-learn, Pandas, NLP (BERT), and LangChain (Master-Agent architecture)[cite: 197, 218].
-* [cite_start]**Database:** PostgreSQL (Financials/Audit) and MongoDB (Unstructured Interaction Logs)[cite: 198, 221].
-* [cite_start]**Integration:** Future RPA interface for SAP/Oracle synchronization[cite: 198, 216].
+* **Frontend:** React.js, Tailwind CSS (Deployed as a Progressive Web App).
+* **Backend:** Node.js, Express.js with JWT-based Role-Based Access Control (RBAC).
+* **AI & Intelligence:** Python, Scikit-learn, Pandas, NLP (BERT), and LangChain (Master-Agent architecture).
+* **Database:** PostgreSQL (Financials/Audit) and MongoDB (Unstructured Interaction Logs).
+* **Integration:** Future RPA interface for SAP/Oracle synchronization.
 
 ---
 
@@ -79,21 +79,21 @@ FedEx_iitmadras/
 ---
 
 ## 🏗️ System Architecture
-[cite_start]Sentinel follows a **three-tier, deployment-ready native architecture**[cite: 209].
+Sentinel follows a **three-tier, deployment-ready native architecture**.
 
-1.  [cite_start]**Access Layer:** Dedicated portals for clients, managers, and DCA partners[cite: 210].
-2.  [cite_start]**Orchestration Layer:** Node.js backend managing data streams and SLA rules[cite: 214].
-3.  [cite_start]**Intelligence Layer:** Python-based AI agents for scoring and sentiment auditing[cite: 218].
+1.  **Access Layer:** Dedicated portals for clients, managers, and DCA partners.
+2.  **Orchestration Layer:** Node.js backend managing data streams and SLA rules.
+3.  **Intelligence Layer:** Python-based AI agents for scoring and sentiment auditing.
 
 ---
 
 ## 📈 Economic Impact
 | Metric | Pre-Sentinel (Manual) | Post-Sentinel (AI-Driven) | Impact |
 | :--- | :--- | :--- | :--- |
-| **Recovery Rate** | [cite_start]~45% [cite: 231] | [cite_start]**60–75%** [cite: 232] | [cite_start]Higher Liquidity [cite: 233] |
-| **Allocation Time** | [cite_start]1–2 Days [cite: 235] | [cite_start]**<5 Minutes** [cite: 236] | [cite_start]Reduced Labor Costs [cite: 237] |
-| **Audit Coverage** | [cite_start]<20% (Sample) [cite: 239] | [cite_start]**100% (Real-time)** [cite: 240] | [cite_start]Risk Mitigation [cite: 241] |
-| **Case Cycle Time** | [cite_start]25+ Days [cite: 243] | [cite_start]**12–15 Days** [cite: 244] | [cite_start]Optimized Efficiency [cite: 245] |
+| **Recovery Rate** | ~45%  | **60–75%**  | Higher Liquidity |
+| **Allocation Time** | 1–2 Days | **<5 Minutes** | Reduced Labor Costs |
+| **Audit Coverage** | <20% (Sample) | **100% (Real-time)** | Risk Mitigation |
+| **Case Cycle Time** | 25+ Days | **12–15 Days** | Optimized Efficiency |
 
 ---
 
