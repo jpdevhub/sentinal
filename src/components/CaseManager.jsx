@@ -21,9 +21,12 @@ import {
   Upload,
   FileText,
   Save,
-  X
+  X,
+  Phone,
+  PhoneOff
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import SettlementEngine from './SettlementEngine';
 import './CaseManager.css';
 
 function CaseManager() {
@@ -81,6 +84,23 @@ function CaseManager() {
     slaBreach: 0,
     highPriority: 0
   });
+
+  // Intent Capture Modal state
+  const [showIntentModal, setShowIntentModal] = useState(false);
+  const [intentCase, setIntentCase] = useState(null);
+  const [selectedIntent, setSelectedIntent] = useState('');
+  const [intentNote, setIntentNote] = useState('');
+  const [intentLoading, setIntentLoading] = useState(false);
+
+  // Case Detail Panel state
+  const [detailCase, setDetailCase] = useState(null);
+
+  const INTENT_OPTIONS = [
+    { value: 'WILLING_AND_ABLE',   label: 'Willing & Able to Pay',  icon: '✅', desc: 'Debtor acknowledges debt and can pay now.' },
+    { value: 'WILLING_BUT_UNABLE', label: 'Willing but Unable',     icon: '⚠️', desc: 'Debtor wants to pay but needs more time.' },
+    { value: 'DISPUTED_INVOICE',   label: 'Disputed Invoice',       icon: '⚖️', desc: 'Debtor contests the amount or validity.' },
+    { value: 'EVADING_CONTACT',    label: 'Evading Contact',        icon: '🚫', desc: 'No response or actively avoiding calls.' },
+  ];
 
   // Get display name for DCA
   const getDCADisplayName = (dcaId) => {
@@ -279,6 +299,47 @@ function CaseManager() {
     setSelectedCases([caseItem.case_id]);
     setBulkMode(false);
     setShowAssignModal(true);
+  };
+
+  // Handle "Log Call / End Call" → opens blocking intent modal
+  const handleEndCall = (caseItem) => {
+    setIntentCase(caseItem);
+    setSelectedIntent('');
+    setIntentNote('');
+    setShowIntentModal(true);
+  };
+
+  // Submit intent and update DB
+  const handleIntentSubmit = async () => {
+    if (!selectedIntent || !intentCase) return;
+    setIntentLoading(true);
+    try {
+      await supabase
+        .from('cases')
+        .update({ current_intent: selectedIntent })
+        .eq('case_id', intentCase.case_id);
+
+      await supabase.from('case_actions').insert([{
+        case_id: intentCase.case_id,
+        action_type: 'INTENT_CAPTURED',
+        note: `Debtor intent captured: ${selectedIntent}${intentNote ? ` — ${intentNote}` : ''}`,
+        created_at: new Date().toISOString(),
+      }]);
+
+      // Refresh the detail panel if open for same case
+      if (detailCase?.case_id === intentCase.case_id) {
+        setDetailCase(prev => ({ ...prev, current_intent: selectedIntent }));
+      }
+
+      setShowIntentModal(false);
+      setIntentCase(null);
+      await loadCases(currentPage);
+    } catch (err) {
+      console.error('Intent save error:', err);
+      alert(`Failed to save intent: ${err.message}`);
+    } finally {
+      setIntentLoading(false);
+    }
   };
 
   // Handle bulk selection
@@ -977,10 +1038,13 @@ function CaseManager() {
           onChange={(e) => setFilterStatus(e.target.value)}
         >
           <option value="All">All Status</option>
-          <option value="OPEN">Open</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="PAID">Paid</option>
-          <option value="DISPUTE">Dispute</option>
+          <option value="UNASSIGNED">Unassigned</option>
+          <option value="ALLOCATED">Allocated</option>
+          <option value="ACTIVE">Active</option>
+          <option value="PROMISE_TO_PAY">Promise to Pay</option>
+          <option value="VERIFICATION_PENDING">Verification Pending</option>
+          <option value="RECONCILED">Reconciled</option>
+          <option value="LEGAL_REVIEW">Legal Review</option>
         </select>
 
         <select 
@@ -1097,8 +1161,19 @@ function CaseManager() {
                   </td>
                   <td>
                     <div className="action-buttons">
-                      <button className="btn-icon" title="View Details">
+                      <button 
+                        className="btn-icon" 
+                        title="View Details"
+                        onClick={() => setDetailCase(caseItem)}
+                      >
                         <Eye size={16} />
+                      </button>
+                      <button
+                        className="btn-icon call"
+                        title="Log Call / End Call"
+                        onClick={() => handleEndCall(caseItem)}
+                      >
+                        <PhoneOff size={16} />
                       </button>
                       {(activeCategory === 'unassigned' || activeCategory === 'slaBreach' || activeCategory === 'highPriority') && (
                         <button 
@@ -1565,6 +1640,130 @@ function CaseManager() {
                     {addCaseMode === 'form' ? 'Create Case' : `Import ${csvFile ? 'Cases' : ''}`}
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Intent Capture Modal ── */}
+      {showIntentModal && (
+        <div className="modal-overlay intent-overlay">
+          <div className="modal-content intent-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                <PhoneOff size={22} />
+                End Call — Capture Debtor Intent
+              </h3>
+            </div>
+            <div className="modal-body">
+              <p className="intent-instruction">
+                Select the debtor's intent before closing this call. This field is <strong>mandatory</strong> and drives your recovery strategy.
+              </p>
+              <div className="intent-options">
+                {INTENT_OPTIONS.map(opt => (
+                  <label
+                    key={opt.value}
+                    className={`intent-option ${selectedIntent === opt.value ? 'selected' : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="intent"
+                      value={opt.value}
+                      checked={selectedIntent === opt.value}
+                      onChange={() => setSelectedIntent(opt.value)}
+                      style={{ display: 'none' }}
+                    />
+                    <span className="intent-icon">{opt.icon}</span>
+                    <div className="intent-text">
+                      <span className="intent-label">{opt.label}</span>
+                      <span className="intent-desc">{opt.desc}</span>
+                    </div>
+                    {selectedIntent === opt.value && <CheckCircle size={18} className="intent-check" />}
+                  </label>
+                ))}
+              </div>
+              <div className="form-group" style={{ marginTop: 14 }}>
+                <label style={{ fontSize: 13, color: '#94a3b8' }}>Additional Notes (optional)</label>
+                <textarea
+                  value={intentNote}
+                  onChange={e => setIntentNote(e.target.value)}
+                  placeholder="Any specifics about the call..."
+                  rows={2}
+                  style={{ marginTop: 6, width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, color: '#f1f5f9', padding: '10px 14px', fontSize: 13, resize: 'vertical', outline: 'none' }}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setShowIntentModal(false)}>
+                Cancel
+              </button>
+              <button
+                className="btn-confirm"
+                disabled={!selectedIntent || intentLoading}
+                onClick={handleIntentSubmit}
+              >
+                {intentLoading
+                  ? <><RefreshCw size={16} className="spinning" /> Saving...</>
+                  : <><CheckCircle size={16} /> Save & Close Call</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Case Detail Panel with Settlement Engine ── */}
+      {detailCase && (
+        <div className="modal-overlay" onClick={() => setDetailCase(null)}>
+          <div className="modal-content detail-panel" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                <Eye size={22} />
+                Case {detailCase.case_id}
+              </h3>
+              <button className="close-btn" onClick={() => setDetailCase(null)}>
+                <XCircle size={24} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="preview-grid" style={{ marginBottom: 20 }}>
+                <div className="preview-item">
+                  <span className="preview-label">Customer</span>
+                  <span className="preview-value">{detailCase.customer_name}</span>
+                </div>
+                <div className="preview-item">
+                  <span className="preview-label">Invoice Amount</span>
+                  <span className="preview-value">{formatCurrency(detailCase.invoice_amount)}</span>
+                </div>
+                <div className="preview-item">
+                  <span className="preview-label">Days Overdue</span>
+                  <span className="preview-value">{detailCase.days_overdue}</span>
+                </div>
+                <div className="preview-item">
+                  <span className="preview-label">Status</span>
+                  <span className={`preview-value status-badge status-${detailCase.case_status?.toLowerCase().replace(/_/g, '-')}`}>{detailCase.case_status}</span>
+                </div>
+              </div>
+              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', marginBottom: 20 }} />
+              <h4 style={{ margin: '0 0 14px', fontSize: 14, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Negotiation Engine</h4>
+              <SettlementEngine
+                caseData={detailCase}
+                onUpdate={async () => {
+                  await loadCases(currentPage);
+                  // Refresh the detailCase data from DB
+                  const { data } = await supabase.from('cases').select('*').eq('case_id', detailCase.case_id).single();
+                  if (data) setDetailCase(data);
+                }}
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setDetailCase(null)}>Close</button>
+              <button
+                className="btn-action primary"
+                onClick={() => { setDetailCase(null); handleEndCall(detailCase); }}
+              >
+                <PhoneOff size={16} /> Log Call Intent
               </button>
             </div>
           </div>
